@@ -55,7 +55,6 @@
   .book-btn { margin-top: 2px; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.15s; }
   .book-btn:hover { background: #4848c2; }
 
-  /* Overlay / Modal */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
   .overlay.active { display: flex; }
 
@@ -77,7 +76,6 @@
   .btn-cancel { background: var(--surface2); color: var(--text); }
   .btn-cancel:hover { background: var(--border); }
 
-  /* Confirmation */
   .confirm-box { gap: 10px; text-align: center; }
   .confirm-icon { font-size: 36px; }
   .confirm-title { font-size: 19px; font-weight: 600; }
@@ -95,12 +93,10 @@
   .btn-done { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 4px; }
   .btn-done:hover { background: #4848c2; }
 
-  /* Admin link */
   .admin-link-wrap { max-width: 720px; margin: 2rem auto 0; text-align: right; }
   .admin-link { font-size: 12px; color: var(--text-muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
   .admin-link:hover { color: var(--accent); }
 
-  /* Admin panel */
   .admin-panel { max-width: 720px; margin: 1.5rem auto 0; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; box-shadow: var(--shadow); }
   .admin-panel h2 { font-size: 16px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
   .admin-close { font-size: 12px; color: var(--text-muted); cursor: pointer; background: none; border: none; font-family: inherit; }
@@ -111,14 +107,13 @@
   .admin-table td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .admin-table tr:last-child td { border-bottom: none; }
 
-  .delete-btn { background: var(--danger-bg); color: var(--danger); border: 1px solid #F5C6C3; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+  .delete-btn { background: var(--danger-bg); color: var(--danger); border: 1px solid #F5C6C3; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; }
   .delete-btn:hover { background: #fce0de; }
 
   .clear-all-btn { background: var(--danger); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 1rem; }
   .clear-all-btn:hover { background: #a93226; }
 
   .admin-empty { color: var(--text-muted); font-size: 13px; padding: 1rem 0; text-align: center; }
-
   .loading-state { text-align: center; color: var(--text-muted); font-size: 14px; padding: 2rem 0; }
 
   footer { text-align: center; margin-top: 3rem; font-size: 12px; color: var(--text-muted); }
@@ -174,12 +169,11 @@
     { id: 's3',  day: 'Monday, July 6',    time: '9:00am – 9:30am'  },
     { id: 's4',  day: 'Monday, July 6',    time: '6:30pm – 7:00pm'  },
     { id: 's5',  day: 'Monday, July 6',    time: '7:00pm – 7:30pm'  },
-    { id: 's6',  day: 'Tuesday, July 7',   time: '8:00am – 8:30am'  },
-    { id: 's7',  day: 'Tuesday, July 7',   time: '8:30am – 9:00am'  },
-    { id: 's8',  day: 'Tuesday, July 7',   time: '9:00am – 9:30am'  },
-    { id: 's9',  day: 'Wednesday, July 8', time: '8:30am – 9:00am'  },
-    { id: 's10', day: 'Wednesday, July 8', time: '9:00am – 9:30am'  },
-    { id: 's11', day: 'Wednesday, July 8', time: '7:00pm – 7:30pm'  },
+    { id: 's6',  day: 'Wednesday, July 8', time: '8:30am – 9:00am'  },
+    { id: 's7',  day: 'Wednesday, July 8', time: '9:00am – 9:30am'  },
+    { id: 's8',  day: 'Wednesday, July 8', time: '9:30am – 10:00am' },
+    { id: 's9',  day: 'Wednesday, July 8', time: '6:30pm – 7:00pm'  },
+    { id: 's10', day: 'Wednesday, July 8', time: '7:00pm – 7:30pm'  },
   ];
 
   let bookings = {};
@@ -239,13 +233,11 @@
     if (adminUnlocked) renderAdmin();
   }
 
-  // Live Firebase listener
   onValue(ref(db, 'bookings'), (snapshot) => {
     bookings = snapshot.val() || {};
     render();
   });
 
-  // ── Booking modal ──────────────────────────────────────────
   function openModal(slot) {
     const overlay = document.getElementById('overlay');
     const modal   = document.getElementById('modal-content');
@@ -336,7 +328,6 @@
     });
   }
 
-  // ── Admin panel ───────────────────────────────────────────
   document.getElementById('admin-toggle-btn').onclick = () => {
     if (adminUnlocked) {
       adminUnlocked = false;
@@ -366,7 +357,6 @@
     document.getElementById('pass-input').focus();
     document.getElementById('pass-cancel').onclick = closeModal;
     overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
-
     document.getElementById('pass-confirm').onclick = () => {
       const val = document.getElementById('pass-input').value;
       if (val === ADMIN_PASS) {
@@ -377,7 +367,6 @@
         document.getElementById('pass-err').style.display = 'block';
       }
     };
-
     document.getElementById('pass-input').onkeydown = (e) => {
       if (e.key === 'Enter') document.getElementById('pass-confirm').click();
     };
@@ -386,8 +375,8 @@
   function renderAdmin() {
     const area = document.getElementById('admin-area');
     const booked = SLOTS.filter(s => bookings[s.id]);
-
     area.innerHTML = '';
+
     const panel = document.createElement('div');
     panel.className = 'admin-panel';
 
@@ -406,11 +395,7 @@
       table.innerHTML = `
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Booked at</th>
-            <th></th>
+            <th>Name</th><th>Date</th><th>Time</th><th>Booked at</th><th></th>
           </tr>
         </thead>
         <tbody id="admin-tbody"></tbody>
@@ -434,7 +419,7 @@
 
       tbody.querySelectorAll('.delete-btn').forEach(btn => {
         btn.onclick = async () => {
-          if (confirm(`Delete booking for slot ${btn.dataset.id}?`)) {
+          if (confirm('Delete this booking?')) {
             await remove(ref(db, `bookings/${btn.dataset.id}`));
           }
         };
