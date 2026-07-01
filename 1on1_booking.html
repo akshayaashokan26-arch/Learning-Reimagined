@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Book Your 1-on-1 · Learning Reimagined</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --surface2: #F0F2F5;
+    --border: #E2E6EA;
+    --accent: #5B5BD6;
+    --accent-light: #EDEDFF;
+    --text: #1A1D23;
+    --text-secondary: #5A6070;
+    --text-muted: #9AA0AD;
+    --success: #1A7F4B;
+    --success-bg: #EDFAF3;
+    --danger: #C0392B;
+    --danger-bg: #FEF0EF;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
+
+  header { max-width: 720px; margin: 0 auto 2.5rem; text-align: center; }
+
+  .badge { display: inline-block; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 14px; }
+
+  h1 { font-size: clamp(20px, 4vw, 28px); font-weight: 600; line-height: 1.25; margin-bottom: 10px; }
+
+  .subtitle { font-size: 15px; color: var(--text-secondary); line-height: 1.6; max-width: 480px; margin: 0 auto; }
+
+  .main { max-width: 720px; margin: 0 auto; }
+
+  .day-section { margin-bottom: 2rem; }
+
+  .day-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+  .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+
+  .slot-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow); transition: border-color 0.15s; }
+  .slot-card:hover:not(.taken) { border-color: var(--accent); }
+  .slot-card.taken { background: var(--surface2); opacity: 0.65; box-shadow: none; }
+
+  .slot-time { font-size: 15px; font-weight: 600; }
+  .slot-status { font-size: 12px; color: var(--text-muted); }
+  .slot-status.available { color: var(--success); }
+
+  .book-btn { margin-top: 2px; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .book-btn:hover { background: #4848c2; }
+
+  /* Overlay / Modal */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+  .overlay.active { display: flex; }
+
+  .modal { background: var(--surface); border-radius: 16px; padding: 1.75rem; width: 100%; max-width: 400px; box-shadow: 0 8px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 14px; }
+
+  .modal h2 { font-size: 18px; font-weight: 600; }
+  .modal .slot-info { font-size: 14px; color: var(--text-secondary); }
+  .modal label { font-size: 13px; font-weight: 500; display: block; margin-bottom: 6px; }
+  .modal input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--text); outline: none; transition: border-color 0.15s; }
+  .modal input:focus { border-color: var(--accent); }
+
+  .err-msg { font-size: 13px; color: var(--danger); display: none; }
+
+  .modal-btns { display: flex; gap: 8px; }
+  .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; border: none; }
+  .btn-confirm { background: var(--accent); color: #fff; }
+  .btn-confirm:hover { background: #4848c2; }
+  .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-cancel { background: var(--surface2); color: var(--text); }
+  .btn-cancel:hover { background: var(--border); }
+
+  /* Confirmation */
+  .confirm-box { gap: 10px; text-align: center; }
+  .confirm-icon { font-size: 36px; }
+  .confirm-title { font-size: 19px; font-weight: 600; }
+  .confirm-slot-text { font-size: 14px; color: var(--text-secondary); }
+
+  .next-step-box { background: var(--success-bg); border: 1px solid #B7EDD4; border-radius: 10px; padding: 1rem 1.1rem; text-align: left; }
+  .next-step-box p { font-size: 13px; font-weight: 600; color: var(--success); margin-bottom: 8px; }
+  .next-step-box ol { font-size: 13px; color: var(--text-secondary); padding-left: 1.2rem; line-height: 1.9; }
+
+  .email-pills { display: flex; flex-direction: column; gap: 5px; margin: 6px 0; }
+  .email-pill { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #B7EDD4; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-family: monospace; color: var(--text); cursor: pointer; gap: 8px; transition: background 0.1s; }
+  .email-pill:hover { background: var(--surface2); }
+  .copy-label { font-size: 11px; color: var(--accent); font-family: 'Inter', sans-serif; white-space: nowrap; }
+
+  .btn-done { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 4px; }
+  .btn-done:hover { background: #4848c2; }
+
+  /* Admin link */
+  .admin-link-wrap { max-width: 720px; margin: 2rem auto 0; text-align: right; }
+  .admin-link { font-size: 12px; color: var(--text-muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
+  .admin-link:hover { color: var(--accent); }
+
+  /* Admin panel */
+  .admin-panel { max-width: 720px; margin: 1.5rem auto 0; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; box-shadow: var(--shadow); }
+  .admin-panel h2 { font-size: 16px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; }
+  .admin-close { font-size: 12px; color: var(--text-muted); cursor: pointer; background: none; border: none; font-family: inherit; }
+  .admin-close:hover { color: var(--danger); }
+
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .admin-table th { text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .admin-table td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .admin-table tr:last-child td { border-bottom: none; }
+
+  .delete-btn { background: var(--danger-bg); color: var(--danger); border: 1px solid #F5C6C3; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background 0.1s; }
+  .delete-btn:hover { background: #fce0de; }
+
+  .clear-all-btn { background: var(--danger); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 1rem; }
+  .clear-all-btn:hover { background: #a93226; }
+
+  .admin-empty { color: var(--text-muted); font-size: 13px; padding: 1rem 0; text-align: center; }
+
+  .loading-state { text-align: center; color: var(--text-muted); font-size: 14px; padding: 2rem 0; }
+
+  footer { text-align: center; margin-top: 3rem; font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Learning Reimagined · 1-on-1s</div>
+  <h1>Book Your 1-on-1 with Akshaya & Meeta</h1>
+  <p class="subtitle">Pick a 30-minute slot that works for you. Each slot is first-come, first-served — once booked, it locks for everyone else in real time.</p>
+</header>
+
+<main class="main" id="main">
+  <div class="loading-state">⏳ Connecting to live booking system…</div>
+</main>
+
+<div class="admin-link-wrap">
+  <button class="admin-link" id="admin-toggle-btn">🔐 Admin</button>
+</div>
+<div id="admin-area"></div>
+
+<footer>Sievane Networks · Learning Reimagined Initiative</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script type="module">
+  import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const YOUR_EMAIL  = 'akshaya.ashok@sievanetworks2.com';
+  const MEETA_EMAIL = 'Meeta@sievanetworks2.com';
+  const ADMIN_PASS  = 'LR2026';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCOS6_zEvomhjBmdToeuUz7fTJgK7_7edo",
+    authDomain: "lr-1-1.firebaseapp.com",
+    databaseURL: "https://lr-1-1-default-rtdb.firebaseio.com",
+    projectId: "lr-1-1",
+    storageBucket: "lr-1-1.firebasestorage.app",
+    messagingSenderId: "353033118273",
+    appId: "1:353033118273:web:30bfa6f27588583fc29cc0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  const SLOTS = [
+    { id: 's1',  day: 'Monday, July 6',    time: '8:00am – 8:30am'  },
+    { id: 's2',  day: 'Monday, July 6',    time: '8:30am – 9:00am'  },
+    { id: 's3',  day: 'Monday, July 6',    time: '9:00am – 9:30am'  },
+    { id: 's4',  day: 'Monday, July 6',    time: '6:30pm – 7:00pm'  },
+    { id: 's5',  day: 'Monday, July 6',    time: '7:00pm – 7:30pm'  },
+    { id: 's6',  day: 'Tuesday, July 7',   time: '8:00am – 8:30am'  },
+    { id: 's7',  day: 'Tuesday, July 7',   time: '8:30am – 9:00am'  },
+    { id: 's8',  day: 'Tuesday, July 7',   time: '9:00am – 9:30am'  },
+    { id: 's9',  day: 'Wednesday, July 8', time: '8:30am – 9:00am'  },
+    { id: 's10', day: 'Wednesday, July 8', time: '9:00am – 9:30am'  },
+    { id: 's11', day: 'Wednesday, July 8', time: '7:00pm – 7:30pm'  },
+  ];
+
+  let bookings = {};
+  let adminUnlocked = false;
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function render() {
+    const main = document.getElementById('main');
+    main.innerHTML = '';
+    const days = [...new Set(SLOTS.map(s => s.day))];
+    days.forEach(day => {
+      const section = document.createElement('div');
+      section.className = 'day-section';
+
+      const label = document.createElement('div');
+      label.className = 'day-label';
+      label.textContent = day;
+      section.appendChild(label);
+
+      const grid = document.createElement('div');
+      grid.className = 'slots-grid';
+
+      SLOTS.filter(s => s.day === day).forEach(slot => {
+        const b = bookings[slot.id];
+        const card = document.createElement('div');
+        card.className = 'slot-card' + (b ? ' taken' : '');
+
+        const time = document.createElement('div');
+        time.className = 'slot-time';
+        time.textContent = slot.time;
+        card.appendChild(time);
+
+        if (b) {
+          const status = document.createElement('div');
+          status.className = 'slot-status';
+          status.innerHTML = '🔒 Booked by ' + esc(b.name);
+          card.appendChild(status);
+        } else {
+          const status = document.createElement('div');
+          status.className = 'slot-status available';
+          status.textContent = '✓ Available';
+          card.appendChild(status);
+
+          const btn = document.createElement('button');
+          btn.className = 'book-btn';
+          btn.textContent = 'Book this slot';
+          btn.onclick = () => openModal(slot);
+          card.appendChild(btn);
+        }
+        grid.appendChild(card);
+      });
+      section.appendChild(grid);
+      main.appendChild(section);
+    });
+
+    if (adminUnlocked) renderAdmin();
+  }
+
+  // Live Firebase listener
+  onValue(ref(db, 'bookings'), (snapshot) => {
+    bookings = snapshot.val() || {};
+    render();
+  });
+
+  // ── Booking modal ──────────────────────────────────────────
+  function openModal(slot) {
+    const overlay = document.getElementById('overlay');
+    const modal   = document.getElementById('modal-content');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <h2>Book your 1-on-1</h2>
+      <p class="slot-info">📅 ${esc(slot.day)} · ${esc(slot.time)}</p>
+      <div>
+        <label for="name-input">Your name</label>
+        <input type="text" id="name-input" placeholder="e.g. Jordan Lee" autocomplete="off" />
+        <p class="err-msg" id="err-msg"></p>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" id="btn-cancel">Cancel</button>
+        <button class="btn-confirm" id="btn-confirm">Confirm booking</button>
+      </div>
+    `;
+    overlay.classList.add('active');
+    document.getElementById('name-input').focus();
+    document.getElementById('btn-cancel').onclick = closeModal;
+    overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+
+    document.getElementById('btn-confirm').onclick = async () => {
+      const name  = document.getElementById('name-input').value.trim();
+      const errEl = document.getElementById('err-msg');
+      if (!name) { errEl.textContent = 'Please enter your name.'; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+
+      const confirmBtn = document.getElementById('btn-confirm');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Booking…';
+
+      const snap = await get(ref(db, `bookings/${slot.id}`));
+      if (snap.exists()) {
+        errEl.textContent = 'This slot was just taken! Please pick another.';
+        errEl.style.display = 'block';
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Confirm booking';
+        closeModal();
+        return;
+      }
+
+      await set(ref(db, `bookings/${slot.id}`), { name, bookedAt: new Date().toISOString() });
+      closeModal();
+      showConfirmation(slot, name);
+    };
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('active');
+    document.getElementById('modal-content').innerHTML = '';
+  }
+
+  function showConfirmation(slot, name) {
+    const overlay = document.getElementById('overlay');
+    const modal   = document.getElementById('modal-content');
+    modal.className = 'modal confirm-box';
+    modal.innerHTML = `
+      <div class="confirm-icon">✅</div>
+      <p class="confirm-title">You're booked, ${esc(name)}!</p>
+      <p class="confirm-slot-text">${esc(slot.day)} · ${esc(slot.time)}</p>
+      <div class="next-step-box">
+        <p>📋 One more step — create the Teams meeting:</p>
+        <ol>
+          <li>Open <strong>Microsoft Teams</strong> → Calendar</li>
+          <li>Create a new meeting for <strong>${esc(slot.time)}</strong> on <strong>${esc(slot.day)}</strong></li>
+          <li>Add these attendees (tap to copy):</li>
+        </ol>
+        <div class="email-pills">
+          <div class="email-pill" id="chip1"><span>${esc(YOUR_EMAIL)}</span><span class="copy-label">Copy</span></div>
+          <div class="email-pill" id="chip2"><span>${esc(MEETA_EMAIL)}</span><span class="copy-label">Copy</span></div>
+        </div>
+        <ol start="4"><li>Click <strong>Send</strong> — both will be notified automatically via Teams!</li></ol>
+      </div>
+      <button class="btn-done" id="btn-done">Done</button>
+    `;
+    overlay.classList.add('active');
+    document.getElementById('btn-done').onclick = closeModal;
+    document.getElementById('chip1').onclick = () => copyText(YOUR_EMAIL, 'chip1');
+    document.getElementById('chip2').onclick = () => copyText(MEETA_EMAIL, 'chip2');
+  }
+
+  function copyText(text, chipId) {
+    navigator.clipboard.writeText(text).then(() => {
+      const label = document.querySelector(`#${chipId} .copy-label`);
+      label.textContent = '✓ Copied!';
+      setTimeout(() => { label.textContent = 'Copy'; }, 1800);
+    });
+  }
+
+  // ── Admin panel ───────────────────────────────────────────
+  document.getElementById('admin-toggle-btn').onclick = () => {
+    if (adminUnlocked) {
+      adminUnlocked = false;
+      document.getElementById('admin-area').innerHTML = '';
+      return;
+    }
+    promptAdminPassword();
+  };
+
+  function promptAdminPassword() {
+    const overlay = document.getElementById('overlay');
+    const modal   = document.getElementById('modal-content');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <h2>🔐 Admin Login</h2>
+      <div>
+        <label for="pass-input">Password</label>
+        <input type="password" id="pass-input" placeholder="Enter admin password" />
+        <p class="err-msg" id="pass-err">Incorrect password.</p>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" id="pass-cancel">Cancel</button>
+        <button class="btn-confirm" id="pass-confirm">Unlock</button>
+      </div>
+    `;
+    overlay.classList.add('active');
+    document.getElementById('pass-input').focus();
+    document.getElementById('pass-cancel').onclick = closeModal;
+    overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+
+    document.getElementById('pass-confirm').onclick = () => {
+      const val = document.getElementById('pass-input').value;
+      if (val === ADMIN_PASS) {
+        adminUnlocked = true;
+        closeModal();
+        renderAdmin();
+      } else {
+        document.getElementById('pass-err').style.display = 'block';
+      }
+    };
+
+    document.getElementById('pass-input').onkeydown = (e) => {
+      if (e.key === 'Enter') document.getElementById('pass-confirm').click();
+    };
+  }
+
+  function renderAdmin() {
+    const area = document.getElementById('admin-area');
+    const booked = SLOTS.filter(s => bookings[s.id]);
+
+    area.innerHTML = '';
+    const panel = document.createElement('div');
+    panel.className = 'admin-panel';
+
+    const heading = document.createElement('h2');
+    heading.innerHTML = `📋 Admin Panel <button class="admin-close" id="admin-close-btn">Close</button>`;
+    panel.appendChild(heading);
+
+    if (booked.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'admin-empty';
+      empty.textContent = 'No bookings yet.';
+      panel.appendChild(empty);
+    } else {
+      const table = document.createElement('table');
+      table.className = 'admin-table';
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Booked at</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="admin-tbody"></tbody>
+      `;
+      panel.appendChild(table);
+
+      const tbody = table.querySelector('#admin-tbody');
+      booked.forEach(slot => {
+        const b = bookings[slot.id];
+        const bookedAt = b.bookedAt ? new Date(b.bookedAt).toLocaleString() : '—';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${esc(b.name)}</strong></td>
+          <td>${esc(slot.day)}</td>
+          <td>${esc(slot.time)}</td>
+          <td style="color:var(--text-muted)">${esc(bookedAt)}</td>
+          <td><button class="delete-btn" data-id="${slot.id}">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = async () => {
+          if (confirm(`Delete booking for slot ${btn.dataset.id}?`)) {
+            await remove(ref(db, `bookings/${btn.dataset.id}`));
+          }
+        };
+      });
+
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'clear-all-btn';
+      clearBtn.textContent = '🗑 Clear All Bookings';
+      clearBtn.onclick = async () => {
+        if (confirm('Are you sure you want to delete ALL bookings? This cannot be undone.')) {
+          await remove(ref(db, 'bookings'));
+        }
+      };
+      panel.appendChild(clearBtn);
+    }
+
+    area.appendChild(panel);
+    document.getElementById('admin-close-btn').onclick = () => {
+      adminUnlocked = false;
+      area.innerHTML = '';
+    };
+  }
+</script>
+</body>
+</html>
